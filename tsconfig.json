@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "files": ["types/environment.d.ts"],
+  "references": []
+}
