@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#171717" />
+    <title>造像台 · 本地管理</title>
+    <style>
+      :root { font-family: Inter, "Microsoft YaHei", sans-serif; color: #171717; background: #f4f4f1; }
+      * { box-sizing: border-box; } body { margin: 0; min-width: 320px; }
+      .shell { min-height: 100vh; display: grid; grid-template-columns: 220px 1fr; }
+      aside { background: #171717; color: #fff; padding: 24px 14px; display: flex; flex-direction: column; }
+      .brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 28px; font-weight: 800; }
+      .brand-mark { width: 30px; height: 30px; display: grid; place-items: center; background: #d7ff45; color: #171717; }
+      nav button { width: 100%; border: 0; background: transparent; color: #aaa; padding: 12px; text-align: left; cursor: pointer; }
+      nav button.active { background: #2b2b28; color: #fff; }
+      .content { padding: 32px 40px; } header { display: flex; justify-content: space-between; align-items: center; }
+      h1 { margin: 0; font-size: 28px; } .sub { color: #777; font-size: 12px; }
+      .metrics { display: grid; grid-template-columns: repeat(3, 1fr); margin: 28px 0; background: #fff; border: 1px solid #deded8; }
+      .metric { padding: 18px 20px; border-right: 1px solid #deded8; } .metric:last-child { border: 0; }
+      .metric span { display: block; color: #777; font-size: 13px; } .metric strong { display: block; margin-top: 8px; font-size: 28px; }
+      .panel { background: #fff; border: 1px solid #deded8; } .panel h2 { margin: 0; padding: 18px 20px; font-size: 16px; border-bottom: 1px solid #e8e8e3; }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; } th, td { padding: 13px 16px; text-align: left; border-bottom: 1px solid #efefeb; } th { color: #777; background: #fafaf8; }
+      .status { font-size: 11px; font-weight: 700; } .ok { color: #176b39; } .muted { color: #777; }
+      @media (max-width: 760px) { .shell { grid-template-columns: 1fr; } aside { padding: 14px; } .content { padding: 24px 16px; } .metrics { grid-template-columns: 1fr; } .metric { border-right: 0; border-bottom: 1px solid #deded8; } }
+    </style>
+  </head>
+  <body>
+    <div class="shell"><aside><div class="brand"><span class="brand-mark">造</span><span>造像台</span></div><nav><button class="active" data-view="skills">◇ 玩法管理</button><button data-view="tasks">≡ 任务记录</button></nav></aside>
+      <main class="content"><header><div><div class="sub">AI PHOTO STUDIO · LOCAL MOCK</div><h1 id="title">玩法管理</h1></div><button id="refresh">刷新</button></header>
+        <section class="metrics"><div class="metric"><span>已发布玩法</span><strong id="published">—</strong></div><div class="metric"><span>执行中任务</span><strong id="running">—</strong></div><div class="metric"><span>累计任务</span><strong id="total">—</strong></div></section>
+        <section class="panel"><h2 id="panel-title">全部玩法</h2><div id="table"><p class="muted" style="padding:20px">正在加载…</p></div></section>
+      </main>
+    </div>
+    <script>
+      const api = location.protocol + '//' + location.hostname + ':__API_PORT__/api/v1';
+      const state = { view: 'skills', skills: [], tasks: [] };
+      const request = (path) => fetch(api + path).then((r) => r.json()).then((r) => { if (r.code !== 0) throw Error(r.message); return r.data; });
+      const render = () => {
+        document.getElementById('title').textContent = state.view === 'skills' ? '玩法管理' : '任务记录';
+        document.getElementById('panel-title').textContent = state.view === 'skills' ? '全部玩法' : '最近任务';
+        document.getElementById('published').textContent = state.skills.filter((x) => x.status === 'PUBLISHED').length;
+        document.getElementById('running').textContent = state.tasks.filter((x) => ['QUEUED','PROCESSING','RETRYING'].includes(x.status)).length;
+        document.getElementById('total').textContent = state.tasks.length;
+        const rows = state.view === 'skills' ? state.skills.map((x) => '<tr><td><strong>' + x.name + '</strong><br><span class="muted">' + x.id + '</span></td><td>' + x.category + '</td><td>' + (x.currentVersion || '—') + '</td><td class="status ok">' + x.status + '</td></tr>').join('') : state.tasks.map((x) => '<tr><td>' + x.taskNo + '</td><td>' + x.skillId + '</td><td>' + x.progress + '%</td><td class="status">' + x.status + '</td></tr>').join('');
+        document.getElementById('table').innerHTML = rows ? '<table><thead><tr>' + (state.view === 'skills' ? '<th>玩法</th><th>分类</th><th>版本</th><th>状态</th>' : '<th>任务编号</th><th>玩法</th><th>进度</th><th>状态</th>') + '</tr></thead><tbody>' + rows + '</tbody></table>' : '<p class="muted" style="padding:20px">暂无记录</p>';
+      };
+      const load = async () => { state.skills = await request('/admin/skills'); state.tasks = await request('/admin/tasks'); render(); };
+      document.querySelectorAll('nav button').forEach((button) => button.addEventListener('click', () => { state.view = button.dataset.view; document.querySelectorAll('nav button').forEach((x) => x.classList.toggle('active', x === button)); render(); }));
+      document.getElementById('refresh').addEventListener('click', () => load().catch((e) => { document.getElementById('table').innerHTML = '<p style="padding:20px;color:#b42318">' + e.message + '</p>'; }));
+      load().catch((e) => { document.getElementById('table').innerHTML = '<p style="padding:20px;color:#b42318">' + e.message + '</p>'; });
+    </script>
+  </body>
+</html>

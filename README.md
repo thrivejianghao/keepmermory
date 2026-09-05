@@ -13,7 +13,7 @@ The API uses a Node HTTP adapter so the loop can run without a database or exter
 development. A Prisma schema, seed, and injectable Prisma database contract are included for a
 MySQL deployment. The queue package includes a BullMQ producer contract; the default local queue is
 an in-memory adapter so the mock loop remains runnable on a machine without Redis. `pnpm dev`
-starts the API and Admin together.
+builds the workspace and starts the API plus a dependency-free static Admin server together.
 
 ## Repository boundaries
 
@@ -40,8 +40,9 @@ pnpm dev
 ```
 
 The API is available at `http://127.0.0.1:3000`, and the Admin app at `http://127.0.0.1:3001`.
-Open `apps/miniapp` in the WeChat Developer Tools. For a no-Docker mock run, the API defaults to
-the in-memory database and queue and still executes the full image flow.
+Open `apps/miniapp` in the WeChat Developer Tools. For a no-Docker mock run, skip the Docker and
+Prisma commands and run `pnpm dev`; the API defaults to the in-memory database and queue and still
+executes the full image flow. `API_PORT` and `ADMIN_PORT` can override the default ports.
 
 ## Verification commands
 
@@ -53,6 +54,9 @@ pnpm lint
 pnpm build
 pnpm test
 ```
+
+`pnpm test` runs an HTTP-level local verification that covers health, skill discovery, multipart
+upload, Mock task execution, persisted output, and Admin SPA fallback routing.
 
 Because the current machine has corrupted npm binary packages and no Docker CLI, the verification
 performed for this checkout uses the clean TypeScript 6.0.3 runtime from the local development
