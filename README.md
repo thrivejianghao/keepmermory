@@ -3,10 +3,17 @@
 Local MVP v0.1 for a skill-driven AI photo creation platform. The repository is being built
 phase by phase from the product and engineering specifications.
 
-## Phase 1 status
+## MVP status
 
-The pnpm workspace, strict TypeScript baseline, ESLint, Prettier, test runner, repository
-boundaries, and E-drive storage directories are initialized.
+The local MVP implementation now includes the complete mock-mode creation loop:
+
+`upload -> skill discovery -> task -> queue -> worker -> skill engine -> provider -> local output -> result -> works`
+
+The API uses a Node HTTP adapter so the loop can run without a database or external AI key in local
+development. A Prisma schema, seed, and injectable Prisma database contract are included for a
+MySQL deployment. The queue package includes a BullMQ producer contract; the default local queue is
+an in-memory adapter so the mock loop remains runnable on a machine without Redis. `pnpm dev`
+starts the API and Admin together.
 
 ## Repository boundaries
 
@@ -21,7 +28,22 @@ boundaries, and E-drive storage directories are initialized.
 - `packages/shared`: shared contracts with no application-specific behavior.
 - `skills`: dynamically discovered creative skills.
 
-## Phase 1 commands
+## Run locally
+
+```bash
+pnpm install
+docker compose up -d
+pnpm prisma:generate
+pnpm prisma:validate
+pnpm prisma:seed
+pnpm dev
+```
+
+The API is available at `http://127.0.0.1:3000`, and the Admin app at `http://127.0.0.1:3001`.
+Open `apps/miniapp` in the WeChat Developer Tools. For a no-Docker mock run, the API defaults to
+the in-memory database and queue and still executes the full image flow.
+
+## Verification commands
 
 ```bash
 pnpm install
@@ -32,5 +54,21 @@ pnpm build
 pnpm test
 ```
 
-The complete local runbook will be added as the database, queue, API, worker, admin, and
-miniapp phases become runnable.
+Because the current machine has corrupted npm binary packages and no Docker CLI, the verification
+performed for this checkout uses the clean TypeScript 6.0.3 runtime from the local development
+environment and Node's built-in test runner. The application code itself does not depend on that
+runtime location.
+
+## API endpoints
+
+- `GET /api/v1/skills`
+- `GET /api/v1/skills/:id`
+- `POST /api/v1/uploads` (`multipart/form-data`, field `file`)
+- `GET /api/v1/files/:path`
+- `POST /api/v1/tasks`
+- `GET /api/v1/tasks/:id`
+- `GET /api/v1/tasks/:id/result`
+- `POST /api/v1/tasks/:id/cancel`
+- `GET /api/v1/works`
+
+All responses use `{ code, message, data }`.

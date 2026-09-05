@@ -1,0 +1,2 @@
+import { api, type Skill } from '../../services/api';
+Page({ data: { skill: null as Skill | null, loading: true, error: '', id: '' }, onLoad(options: { id?: string }) { this.setData({ id: options.id ?? '' }); void this.load(); }, async load() { try { this.setData({ skill: await api.skill(this.data.id), loading: false, error: '' }); } catch (reason) { this.setData({ loading: false, error: reason instanceof Error ? reason.message : '加载失败' }); } }, create() { wx.navigateTo({ url: `/pages/create/index?id=${this.data.id}` }); } });

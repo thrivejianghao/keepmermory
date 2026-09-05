@@ -1,0 +1,15 @@
+{
+  "name": "@ai-photo/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./dist/index.js" },
+  "scripts": { "build": "tsc -p tsconfig.json", "dev": "tsx src/main.ts", "start": "node dist/main.js" },
+  "dependencies": {
+    "@ai-photo/ai-provider": "workspace:*",
+    "@ai-photo/database": "workspace:*",
+    "@ai-photo/skill-engine": "workspace:*",
+    "@ai-photo/storage": "workspace:*",
+    "@ai-photo/task": "workspace:*"
+  }
+}

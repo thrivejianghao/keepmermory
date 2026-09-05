@@ -1,5 +1,13 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "files": ["types/environment.d.ts"],
-  "references": []
+  "references": [
+    { "path": "packages/shared" },
+    { "path": "packages/database" },
+    { "path": "packages/storage" },
+    { "path": "packages/ai-provider" },
+    { "path": "packages/skill-engine" },
+    { "path": "packages/task" },
+    { "path": "apps/api" }
+  ]
 }

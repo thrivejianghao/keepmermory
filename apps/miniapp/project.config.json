@@ -1,0 +1,7 @@
+{
+  "appid": "touristappid",
+  "compileType": "miniprogram",
+  "libVersion": "3.7.12",
+  "projectname": "ai-photo-skill-platform",
+  "setting": { "es6": true, "useCompilerPlugins": ["typescript"], "minified": true, "urlCheck": false }
+}

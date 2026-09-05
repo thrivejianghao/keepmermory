@@ -1,0 +1,9 @@
+.identity { padding: 54rpx 0 42rpx; display: flex; flex-direction: column; align-items: center; gap: 10rpx; }
+.identity view { width: 116rpx; height: 116rpx; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--accent); font-size: 46rpx; font-weight: 900; }
+.identity text { font-size: 34rpx; font-weight: 700; }
+.identity small, .privacy { color: var(--muted); font-size: 22rpx; }
+.menu { overflow: hidden; }
+.menu view { min-height: 92rpx; padding: 0 24rpx; display: flex; align-items: center; justify-content: space-between; border-bottom: 2rpx solid var(--line); }
+.menu view:last-child { border-bottom: 0; }
+.menu view text:last-child { color: var(--muted); }
+.privacy { display: block; margin-top: 24rpx; text-align: center; }

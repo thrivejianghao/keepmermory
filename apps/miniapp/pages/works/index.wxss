@@ -1,0 +1,4 @@
+.works-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16rpx; margin-top: 32rpx; }
+.work { overflow: hidden; background: #fff; border: 2rpx solid var(--line); }
+.work image { width: 100%; height: 330rpx; background: #ddd; }
+.work text { display: block; overflow: hidden; padding: 16rpx; color: var(--muted); font-size: 22rpx; text-overflow: ellipsis; white-space: nowrap; }

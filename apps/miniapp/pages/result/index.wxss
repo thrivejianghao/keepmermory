@@ -1,0 +1,2 @@
+.result-image { width: 100%; min-height: 600rpx; margin: 32rpx 0 24rpx; background: #e2e2dd; border-radius: var(--r-md); }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx; margin-top: 16rpx; }

@@ -1,0 +1,10 @@
+.detail { padding-bottom: 150rpx; }
+.hero-art { height: 700rpx; display: grid; place-items: center; margin: -32rpx -28rpx 34rpx; background: #345995; color: #fff; font-size: 160rpx; font-weight: 900; }
+.description { display: block; color: var(--muted); margin-top: 18rpx; line-height: 1.65; }
+.before-after { display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx; margin-top: 38rpx; }
+.before-after > view > text { color: var(--muted); font-size: 20rpx; }
+.before-after > view > view { height: 190rpx; display: grid; place-items: center; margin-top: 8rpx; background: #e7e7e2; color: var(--muted); }
+.before-after > view:last-child > view { background: #d7ff45; color: #171717; }
+.requirements { margin-top: 24rpx; padding: 24rpx; display: grid; gap: 12rpx; }
+.requirements text { color: var(--muted); }
+.fixed-action { position: fixed; left: 28rpx; right: 28rpx; bottom: calc(24rpx + env(safe-area-inset-bottom)); width: auto; }

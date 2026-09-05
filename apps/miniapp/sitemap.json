@@ -1,0 +1,1 @@
+{ "desc": "AI Photo Skill Platform", "rules": [{ "action": "allow", "page": "*" }] }

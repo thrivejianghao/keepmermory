@@ -1,0 +1,23 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/skill-list/index",
+    "pages/skill-detail/index",
+    "pages/create/index",
+    "pages/task/index",
+    "pages/result/index",
+    "pages/works/index",
+    "pages/profile/index"
+  ],
+  "window": { "navigationBarTitleText": "造像", "navigationBarBackgroundColor": "#F7F7F5", "navigationBarTextStyle": "black", "backgroundColor": "#F7F7F5" },
+  "tabBar": {
+    "color": "#8B8B85", "selectedColor": "#171717", "backgroundColor": "#FFFFFF", "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/home/index", "text": "发现" },
+      { "pagePath": "pages/works/index", "text": "作品" },
+      { "pagePath": "pages/profile/index", "text": "我的" }
+    ]
+  },
+  "componentFramework": "glass-easel",
+  "sitemapLocation": "sitemap.json"
+}

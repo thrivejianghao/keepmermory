@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum SkillStatus {
+  DRAFT
+  TESTING
+  PUBLISHED
+  OFFLINE
+  DEPRECATED
+}
+
+enum TaskStatus {
+  PENDING
+  QUEUED
+  PROCESSING
+  RETRYING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @db.VarChar(64)
+  openId    String?  @unique @db.VarChar(128)
+  nickname  String?  @db.VarChar(128)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tasks     Task[]
+}
+
+model Skill {
+  id             String         @id @db.VarChar(64)
+  slug           String         @unique @db.VarChar(128)
+  name           String         @db.VarChar(128)
+  description    String         @db.Text
+  coverUrl       String?        @db.VarChar(512)
+  category       String         @db.VarChar(64)
+  status         SkillStatus    @default(DRAFT)
+  currentVersion String?        @db.VarChar(32)
+  sort           Int            @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  versions       SkillVersion[]
+  assets         SkillAsset[]
+  tasks          Task[]
+}
+
+model SkillVersion {
+  id             String      @id @default(cuid()) @db.VarChar(64)
+  skillId        String      @db.VarChar(64)
+  version        String      @db.VarChar(32)
+  status         SkillStatus @default(DRAFT)
+  skillManifest  Json
+  skillContent   String?     @db.LongText
+  inputSchema    Json?
+  outputSchema   Json?
+  workflowConfig Json?
+  providerId     String?     @db.VarChar(64)
+  modelId        String?     @db.VarChar(64)
+  timeoutSeconds Int         @default(120)
+  maxRetries     Int         @default(3)
+  createdAt      DateTime    @default(now())
+  publishedAt    DateTime?
+  skill          Skill       @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  tasks          Task[]
+
+  @@unique([skillId, version])
+}
+
+model SkillAsset {
+  id        String   @id @default(cuid()) @db.VarChar(64)
+  skillId   String   @db.VarChar(64)
+  objectKey String   @db.VarChar(512)
+  mimeType  String   @db.VarChar(128)
+  createdAt DateTime @default(now())
+  skill     Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+}
+
+model Task {
+  id             String       @id @default(cuid()) @db.VarChar(64)
+  taskNo         String       @unique @db.VarChar(64)
+  userId         String       @db.VarChar(64)
+  skillId        String       @db.VarChar(64)
+  skillVersionId String?      @db.VarChar(64)
+  status         TaskStatus   @default(PENDING)
+  progress       Int          @default(0)
+  inputJson      Json
+  outputJson     Json?
+  providerId     String?      @db.VarChar(64)
+  modelId        String?      @db.VarChar(64)
+  retryCount     Int          @default(0)
+  errorCode      String?      @db.VarChar(64)
+  errorMessage   String?      @db.Text
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  user           User         @relation(fields: [userId], references: [id])
+  skill          Skill        @relation(fields: [skillId], references: [id])
+  skillVersion   SkillVersion? @relation(fields: [skillVersionId], references: [id])
+  outputs        TaskOutput[]
+}
+
+model TaskOutput {
+  id        String   @id @default(cuid()) @db.VarChar(64)
+  taskId    String   @db.VarChar(64)
+  objectKey String   @db.VarChar(512)
+  mimeType  String   @db.VarChar(128)
+  width     Int?
+  height    Int?
+  size      Int?
+  createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+model AiProvider {
+  id        String    @id @db.VarChar(64)
+  type      String    @unique @db.VarChar(64)
+  name      String    @db.VarChar(128)
+  enabled   Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  models    AiModel[]
+}
+
+model AiModel {
+  id         String      @id @db.VarChar(64)
+  providerId String      @db.VarChar(64)
+  name       String      @db.VarChar(128)
+  enabled    Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  provider   AiProvider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+}

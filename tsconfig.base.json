@@ -2,6 +2,7 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
+    "composite": true,
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
@@ -19,5 +20,7 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "ES2023"
+    ,"typeRoots": ["C:/Users/Administrator/Documents/陪玩内部管理系统/web-app/node_modules/@types"]
+    ,"types": ["node"]
   }
 }

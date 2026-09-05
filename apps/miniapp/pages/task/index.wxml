@@ -1,0 +1,1 @@
+<view class="task-page"><view class="visual"><view class="scan"></view><text>{{progress}}%</text></view><text class="task-title">{{error ? '这次没有完成' : label}}</text><text class="task-copy">{{error || '请稍等片刻，作品完成后会自动打开'}}</text><view class="progress"><view style="width: {{progress}}%"></view></view><button wx:if="{{error}}" class="secondary" bindtap="retry">重新查询</button></view>
