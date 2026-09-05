@@ -44,6 +44,15 @@ Open `apps/miniapp` in the WeChat Developer Tools. For a no-Docker mock run, ski
 Prisma commands and run `pnpm dev`; the API defaults to the in-memory database and queue and still
 executes the full image flow. `API_PORT` and `ADMIN_PORT` can override the default ports.
 
+On the current Windows machine, use the isolated E-drive Node/pnpm runtime because the system
+`E:\\nodejs` and global pnpm binaries are damaged:
+
+```powershell
+$env:PATH = "E:\\codex-tools\\node-v24.19.0-win-x64;$env:PATH"
+$env:COREPACK_HOME = "E:\\codex-cache\\corepack"
+& "C:\\Users\\Administrator\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback\\pnpm.cmd" dev
+```
+
 ## Verification commands
 
 ```bash
