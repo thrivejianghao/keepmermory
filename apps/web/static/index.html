@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#171717" />
+    <title>造像 · AI Photo</title>
+    <style>
+      :root { font-family: Inter, "Microsoft YaHei", sans-serif; color: #171717; background: #f4f4f1; font-synthesis: none; }
+      * { box-sizing: border-box; } body { margin: 0; min-width: 320px; } button, input { font: inherit; }
+      button { cursor: pointer; } .app { min-height: 100vh; max-width: 1120px; margin: 0 auto; padding: 24px 22px 48px; }
+      header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 42px; }
+      .brand { display: flex; align-items: center; gap: 10px; font-weight: 850; font-size: 18px; }
+      .mark { width: 32px; height: 32px; display: grid; place-items: center; background: #d7ff45; color: #171717; font-weight: 900; }
+      .header-link { border: 0; background: transparent; color: #65655f; font-size: 13px; padding: 8px; }
+      .hero { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(280px, .7fr); gap: 48px; align-items: end; margin-bottom: 48px; }
+      .eyebrow { color: #85857e; font-size: 11px; letter-spacing: .08em; font-weight: 800; }
+      h1 { margin: 14px 0 12px; max-width: 600px; font-size: clamp(38px, 7vw, 78px); line-height: .98; letter-spacing: -.045em; }
+      .intro { margin: 0; max-width: 470px; color: #6e6e68; line-height: 1.7; font-size: 15px; }
+      .hero-note { padding-left: 18px; border-left: 2px solid #d7ff45; color: #6e6e68; font-size: 13px; line-height: 1.7; }
+      .section-head { display: flex; align-items: end; justify-content: space-between; margin-bottom: 15px; }
+      h2 { margin: 0; font-size: 20px; letter-spacing: -.02em; } .section-meta { color: #888880; font-size: 12px; }
+      .skill-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+      .skill { min-height: 188px; position: relative; display: flex; flex-direction: column; justify-content: flex-end; padding: 17px; border: 1px solid #deded8; background: #fff; text-align: left; overflow: hidden; }
+      .skill::before { content: ''; position: absolute; inset: 0 0 auto; height: 92px; background: var(--tone); opacity: .92; }
+      .skill:nth-child(4n + 1) { --tone: #345995; } .skill:nth-child(4n + 2) { --tone: #e56b6f; } .skill:nth-child(4n + 3) { --tone: #557c5b; } .skill:nth-child(4n) { --tone: #8d5a97; }
+      .skill-name { position: relative; margin-top: 63px; font-size: 16px; font-weight: 800; } .skill-description { position: relative; margin-top: 6px; color: #777770; font-size: 12px; line-height: 1.5; }
+      .skill-category { position: relative; margin-top: 12px; color: #96968f; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+      .state { padding: 42px 20px; border: 1px solid #deded8; background: #fff; color: #777770; text-align: center; }
+      .flow { display: none; } .flow.active { display: block; }
+      .back { border: 0; background: transparent; color: #777770; padding: 0 0 20px; }
+      .create-head { margin-bottom: 24px; } .create-head h2 { margin: 9px 0; font-size: 31px; } .create-head p { color: #777770; margin: 0; }
+      .upload-zone { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; } .upload-card { min-height: 300px; display: grid; place-items: center; border: 1px dashed #c9c9c2; background: #fff; padding: 24px; text-align: center; }
+      .upload-card input { display: none; } .upload-button { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 16px; border: 0; background: #171717; color: #fff; font-weight: 750; }
+      .preview { width: 100%; height: 100%; max-height: 260px; object-fit: contain; } .preview-wrap { width: 100%; height: 100%; display: grid; place-items: center; }
+      .primary { width: 100%; min-height: 48px; border: 0; background: #d7ff45; color: #171717; font-weight: 850; margin-top: 16px; } .primary:disabled { opacity: .5; cursor: wait; }
+      .result-card { background: #fff; border: 1px solid #deded8; padding: 18px; } .result-card img { display: block; width: 100%; max-height: 620px; object-fit: contain; background: #f4f4f1; } .result-actions { display: flex; gap: 10px; } .result-actions button { flex: 1; }
+      .secondary { min-height: 44px; border: 1px solid #d2d2cb; background: #fff; color: #171717; padding: 0 14px; font-weight: 700; }
+      .error { color: #a93428; background: #ffebe7; border: 1px solid #ffd5cc; padding: 12px; margin-top: 14px; font-size: 13px; }
+      @media (max-width: 780px) { .app { padding: 18px 16px 40px; } header { margin-bottom: 30px; } .hero { grid-template-columns: 1fr; gap: 22px; margin-bottom: 34px; } .hero-note { max-width: 330px; } .skill-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .upload-zone { grid-template-columns: 1fr; } .upload-card { min-height: 220px; } }
+      @media (max-width: 420px) { h1 { font-size: 42px; } .skill-grid { gap: 8px; } .skill { min-height: 174px; padding: 13px; } }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header><div class="brand"><span class="mark">造</span><span>造像</span></div><button class="header-link" id="works-link">我的作品</button></header>
+      <section id="discover-flow" class="flow active"><div class="hero"><div><div class="eyebrow">AI PHOTO SKILLS · LOCAL MOCK</div><h1>把照片，变成值得留下的作品。</h1><p class="intro">挑一种风格，上传一张照片。这里的每一次生成都运行在本地 Mock 模式，适合快速体验完整创作流程。</p></div><div class="hero-note">从灵感到成片<br />上传 → 选择玩法 → 生成 → 保存</div></div><div class="section-head"><h2>选择一种玩法</h2><span class="section-meta" id="skill-count">正在发现…</span></div><div class="skill-grid" id="skills"><div class="state">正在加载玩法…</div></div></section>
+      <section id="create-flow" class="flow"><button class="back" id="back-discover">← 返回玩法</button><div class="create-head"><div class="eyebrow" id="create-category">CREATION</div><h2 id="create-title">选择照片</h2><p id="create-description"></p></div><div class="upload-zone"><label class="upload-card" for="photo-input"><div id="upload-empty"><div style="font-size:32px;margin-bottom:12px">＋</div><strong>选择一张照片</strong><div class="section-meta" style="margin-top:8px">JPG / PNG / WEBP</div></div><div class="preview-wrap" id="preview-wrap" hidden><img class="preview" id="preview" alt="已选择的照片" /></div><input id="photo-input" type="file" accept="image/jpeg,image/png,image/webp" /></label><div class="upload-card"><div><div class="eyebrow">MOCK OUTPUT</div><strong style="display:block;margin-top:10px">保留原图内容</strong><p class="section-meta" style="line-height:1.6">Mock Provider 会复制输入图像生成结果，用于验证任务、队列和结果链路。</p></div></div></div><div id="create-error"></div><button class="primary" id="generate" disabled>开始生成</button></section>
+      <section id="result-flow" class="flow"><button class="back" id="back-create">← 再生成一张</button><div class="create-head"><div class="eyebrow">CREATION COMPLETE</div><h2>这一刻，做好了</h2><p id="result-meta">你的作品已保存到本地作品集。</p></div><div class="result-card"><img id="result-image" alt="生成结果" /><div class="result-actions"><button class="primary" id="download">保存图片</button><button class="secondary" id="new-skill">换个玩法</button></div></div></section>
+      <section id="works-flow" class="flow"><button class="back" id="back-works">← 返回发现</button><div class="create-head"><div class="eyebrow">YOUR ARCHIVE</div><h2>我的作品</h2><p>本地 Mock 任务生成的最近作品。</p></div><div class="state" id="works-content">正在整理作品…</div></section>
+    </main>
+    <script>
+      const apiBase = location.protocol + '//' + location.hostname + ':__API_PORT__/api/v1';
+      const state = { skills: [], selected: null, upload: null, result: null };
+      const $ = (id) => document.getElementById(id);
+      const request = async (path, options) => { const response = await fetch(apiBase + path, options); const body = await response.json(); if (!response.ok || body.code !== 0) throw Error(body.message || '请求失败'); return body.data; };
+      const show = (id) => document.querySelectorAll('.flow').forEach((flow) => flow.classList.toggle('active', flow.id === id));
+      const error = (target, message) => { $(target).innerHTML = message ? '<div class="error">' + message + '</div>' : ''; };
+      async function loadSkills() { try { state.skills = await request('/skills'); $('skill-count').textContent = state.skills.length + ' 种玩法'; $('skills').innerHTML = state.skills.map((skill) => '<button class="skill" data-skill="' + skill.id + '"><span class="skill-name">' + skill.name + '</span><span class="skill-description">' + skill.description + '</span><span class="skill-category">' + skill.category + '</span></button>').join(''); document.querySelectorAll('[data-skill]').forEach((button) => button.addEventListener('click', () => selectSkill(button.dataset.skill))); } catch (reason) { $('skills').innerHTML = '<div class="state">' + reason.message + '</div>'; } }
+      function selectSkill(id) { state.selected = state.skills.find((skill) => skill.id === id); if (!state.selected) return; $('create-category').textContent = state.selected.category + ' · ' + state.selected.version; $('create-title').textContent = state.selected.name; $('create-description').textContent = state.selected.description; $('photo-input').value = ''; $('preview-wrap').hidden = true; $('upload-empty').hidden = false; $('generate').disabled = true; error('create-error', ''); show('create-flow'); }
+      $('photo-input').addEventListener('change', () => { const file = $('photo-input').files?.[0]; if (!file) return; $('preview').src = URL.createObjectURL(file); $('preview-wrap').hidden = false; $('upload-empty').hidden = true; $('generate').disabled = false; });
+      $('back-discover').addEventListener('click', () => show('discover-flow')); $('back-create').addEventListener('click', () => show('create-flow')); $('new-skill').addEventListener('click', () => show('discover-flow')); $('back-works').addEventListener('click', () => show('discover-flow'));
+      $('works-link').addEventListener('click', async () => { show('works-flow'); try { const works = await request('/works'); $('works-content').innerHTML = works.items.length ? works.items.map((item) => '<div style="padding:14px;border-bottom:1px solid #eee"><strong>' + item.task.taskNo + '</strong><div class="section-meta">' + item.task.skillId + '</div></div>').join('') : '还没有作品，从一个玩法开始。'; } catch (reason) { $('works-content').textContent = reason.message; } });
+      $('generate').addEventListener('click', async () => { const file = $('photo-input').files?.[0]; if (!file || !state.selected) return; $('generate').disabled = true; $('generate').textContent = '正在生成…'; error('create-error', ''); try { const form = new FormData(); form.append('file', file, file.name); const upload = await fetch(apiBase + '/uploads', { method: 'POST', body: form }).then(async (response) => { const body = await response.json(); if (!response.ok || body.code !== 0) throw Error(body.message); return body.data; }); state.upload = upload; const task = await request('/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ skillId: state.selected.id, images: [{ objectKey: upload.objectKey, mimeType: file.type }], parameters: {} }) }); let result; for (let attempt = 0; attempt < 40; attempt += 1) { result = await request('/tasks/' + task.taskId + '/result'); if (['SUCCEEDED', 'FAILED'].includes(result.task.status)) break; await new Promise((resolve) => setTimeout(resolve, 80)); } if (result.task.status !== 'SUCCEEDED' || !result.outputs.length) throw Error(result.task.errorMessage || '生成失败'); state.result = result; $('result-image').src = apiBase + '/files/' + result.outputs[0].objectKey; $('result-meta').textContent = result.task.taskNo + ' · ' + state.selected.name; show('result-flow'); } catch (reason) { error('create-error', reason.message); } finally { $('generate').disabled = false; $('generate').textContent = '开始生成'; } });
+      $('download').addEventListener('click', () => { if (state.result?.outputs?.[0]) window.open(apiBase + '/files/' + state.result.outputs[0].objectKey, '_blank', 'noopener'); });
+      loadSkills();
+    </script>
+  </body>
+</html>

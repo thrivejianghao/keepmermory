@@ -39,10 +39,20 @@ pnpm prisma:seed
 pnpm dev
 ```
 
-The API is available at `http://127.0.0.1:3000`, and the Admin app at `http://127.0.0.1:3001`.
+The API is available at `http://127.0.0.1:3000`, the Admin app at `http://127.0.0.1:3001`, and the
+browser H5 user client at `http://127.0.0.1:3002`. The H5 covers skill discovery, local image upload,
+Mock task creation, result polling, download, and recent works. `WEB_PORT` can override its port.
 Open `apps/miniapp` in the WeChat Developer Tools. For a no-Docker mock run, skip the Docker and
 Prisma commands and run `pnpm dev`; the API defaults to the in-memory database and queue and still
 executes the full image flow. `API_PORT` and `ADMIN_PORT` can override the default ports.
+
+### WeChat Mini Program
+
+The Mini Program source is under `apps/miniapp`. In WeChat Developer Tools, import that directory,
+keep `urlCheck` disabled for local development, and run the local services first. The configured
+development API is `http://127.0.0.1:3000/api/v1`; on a real phone, replace it in
+`apps/miniapp/app.ts` with a LAN IP reachable by the phone. The browser H5 at port `3002` provides
+the same user flow without requiring WeChat Developer Tools.
 
 On the current Windows machine, use the isolated E-drive Node/pnpm runtime because the system
 `E:\\nodejs` and global pnpm binaries are damaged:

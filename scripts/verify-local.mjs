@@ -78,7 +78,17 @@ const asset = await jsonRequest(`http://127.0.0.1:${assetAddress.port}/assets/ap
 assert.equal(asset.status, 200);
 assert.equal(asset.text, 'console.log("ok")');
 assetServer.close();
-console.log('Local verification passed: API mock flow and Admin SPA are reachable.');
+
+const h5 = await createStaticServer({ rootDir: join(process.cwd(), 'apps/web/static'), htmlReplacements: { '__API_PORT__': '3999' } });
+await listen(h5, 0);
+const h5Address = h5.address();
+assert.ok(h5Address && typeof h5Address === 'object');
+const h5Page = await jsonRequest(`http://127.0.0.1:${h5Address.port}/create`);
+assert.equal(h5Page.status, 200);
+assert.match(h5Page.text, /type="file"/);
+assert.match(h5Page.text, /:3999\/api\/v1/);
+h5.close();
+console.log('Local verification passed: API mock flow, Admin SPA, and H5 user client are reachable.');
 
 function listen(server, port) {
   return new Promise((resolve, reject) => {
