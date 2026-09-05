@@ -92,6 +92,7 @@ assert.match(h5Page.text, /id="service-status"/);
 assert.match(h5Page.text, /id="create-status"/);
 assert.match(h5Page.text, /上传图片/);
 assert.match(h5Page.text, /创建任务/);
+assert.match(h5Page.text, /API 服务不可用/);
 h5.close();
 console.log('Local verification passed: API mock flow, Admin SPA, and H5 user client are reachable.');
 
