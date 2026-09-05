@@ -86,7 +86,12 @@ assert.ok(h5Address && typeof h5Address === 'object');
 const h5Page = await jsonRequest(`http://127.0.0.1:${h5Address.port}/create`);
 assert.equal(h5Page.status, 200);
 assert.match(h5Page.text, /type="file"/);
-assert.match(h5Page.text, /:3999\/api\/v1/);
+assert.match(h5Page.text, /const configuredApiPort = '3999'/);
+assert.match(h5Page.text, /\/api\/v1/);
+assert.match(h5Page.text, /id="service-status"/);
+assert.match(h5Page.text, /id="create-status"/);
+assert.match(h5Page.text, /上传图片/);
+assert.match(h5Page.text, /创建任务/);
 h5.close();
 console.log('Local verification passed: API mock flow, Admin SPA, and H5 user client are reachable.');
 
