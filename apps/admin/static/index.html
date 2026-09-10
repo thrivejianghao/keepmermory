@@ -7,14 +7,14 @@
     <title>造像台 · 本地管理</title>
     <style>
       :root { font-family: Inter, "Microsoft YaHei", sans-serif; color: #171717; background: #f4f4f1; }
-      * { box-sizing: border-box; } body { margin: 0; min-width: 320px; }
+      * { box-sizing: border-box; } [hidden] { display:none !important; } body { margin: 0; min-width: 320px; }
       .shell { min-height: 100vh; display: grid; grid-template-columns: 220px 1fr; }
       aside { background: #171717; color: #fff; padding: 24px 14px; display: flex; flex-direction: column; }
       .brand { display: flex; align-items: center; gap: 10px; padding: 0 10px 28px; font-weight: 800; }
       .brand-mark { width: 30px; height: 30px; display: grid; place-items: center; background: #d7ff45; color: #171717; }
       nav button { width: 100%; border: 0; background: transparent; color: #aaa; padding: 12px; text-align: left; cursor: pointer; }
       nav button.active { background: #2b2b28; color: #fff; }
-      .content { padding: 32px 40px; } header { display: flex; justify-content: space-between; align-items: center; }
+      .content { padding: 32px 40px; min-width:0; } header { display: flex; justify-content: space-between; align-items: center; }
       h1 { margin: 0; font-size: 28px; } .sub { color: #777; font-size: 12px; }
       .metrics { display: grid; grid-template-columns: repeat(3, 1fr); margin: 28px 0; background: #fff; border: 1px solid #deded8; }
       .metric { padding: 18px 20px; border-right: 1px solid #deded8; } .metric:last-child { border: 0; }
@@ -26,26 +26,60 @@
     </style>
   </head>
   <body>
-    <div class="shell"><aside><div class="brand"><span class="brand-mark">造</span><span>造像台</span></div><nav><button class="active" data-view="skills">◇ 玩法管理</button><button data-view="tasks">≡ 任务记录</button></nav></aside>
-      <main class="content"><header><div><div class="sub">AI PHOTO STUDIO · LOCAL MOCK</div><h1 id="title">玩法管理</h1></div><button id="refresh">刷新</button></header>
-        <section class="metrics"><div class="metric"><span>已发布玩法</span><strong id="published">—</strong></div><div class="metric"><span>执行中任务</span><strong id="running">—</strong></div><div class="metric"><span>累计任务</span><strong id="total">—</strong></div></section>
-        <section class="panel"><h2 id="panel-title">全部玩法</h2><div id="table"><p class="muted" style="padding:20px">正在加载…</p></div></section>
+    <div class="shell"><aside><div class="brand"><span class="brand-mark">造</span><span>造像台</span></div><nav><button class="active" data-view="skills">Skill 管理</button><button data-view="tasks">≡ 任务记录</button><button data-view="models">模型配置</button></nav></aside>
+      <main class="content"><header><div><div class="sub">AI PHOTO STUDIO · LOCAL</div><h1 id="title">Skill 管理</h1></div><button id="refresh">刷新</button></header>
+        <section class="metrics"><div class="metric"><span>已发布 Skill</span><strong id="published">—</strong></div><div class="metric"><span>执行中任务</span><strong id="running">—</strong></div><div class="metric"><span>累计任务</span><strong id="total">—</strong></div></section>
+        <section class="panel" hidden><h2 id="panel-title">最近任务</h2><div id="table"><p class="muted" style="padding:20px">正在加载…</p></div></section>
+        <div id="skill-settings"></div>
+        <div id="model-settings" hidden></div>
       </main>
     </div>
-    <script>
+    <script type="module">
+      import { mountModelConfig } from './model-config.js?v=2';
+      import { mountSkillManager } from './skill-manager.js?v=1';
       const api = location.protocol + '//' + location.hostname + ':__API_PORT__/api/v1';
       const state = { view: 'skills', skills: [], tasks: [] };
+      let disposeModels;
+      let disposeSkills;
       const request = (path) => fetch(api + path).then((r) => r.json()).then((r) => { if (r.code !== 0) throw Error(r.message); return r.data; });
       const render = () => {
-        document.getElementById('title').textContent = state.view === 'skills' ? '玩法管理' : '任务记录';
-        document.getElementById('panel-title').textContent = state.view === 'skills' ? '全部玩法' : '最近任务';
+        const modelsView = state.view === 'models';
+        const skillsView = state.view === 'skills';
+        document.querySelector('.metrics').hidden = modelsView;
+        document.querySelector('.panel').hidden = modelsView || skillsView;
+        document.getElementById('skill-settings').hidden = !skillsView;
+        document.getElementById('model-settings').hidden = !modelsView;
+        document.getElementById('refresh').hidden = modelsView || skillsView;
+        if (modelsView) {
+          if (disposeSkills) { disposeSkills(); disposeSkills = undefined; }
+          document.getElementById('title').textContent = '模型配置';
+          if (!disposeModels) disposeModels = mountModelConfig(document.getElementById('model-settings'), api);
+          return;
+        }
+        if (disposeModels) { disposeModels(); disposeModels = undefined; }
+        if (skillsView) {
+          document.getElementById('title').textContent = 'Skill 管理';
+          if (!disposeSkills) disposeSkills = mountSkillManager(document.getElementById('skill-settings'), api, { onChanged: () => void loadMetrics() });
+        } else {
+          if (disposeSkills) { disposeSkills(); disposeSkills = undefined; }
+          document.getElementById('title').textContent = '任务记录';
+        }
+        document.getElementById('panel-title').textContent = '最近任务';
         document.getElementById('published').textContent = state.skills.filter((x) => x.status === 'PUBLISHED').length;
         document.getElementById('running').textContent = state.tasks.filter((x) => ['QUEUED','PROCESSING','RETRYING'].includes(x.status)).length;
         document.getElementById('total').textContent = state.tasks.length;
-        const rows = state.view === 'skills' ? state.skills.map((x) => '<tr><td><strong>' + x.name + '</strong><br><span class="muted">' + x.id + '</span></td><td>' + x.category + '</td><td>' + (x.currentVersion || '—') + '</td><td class="status ok">' + x.status + '</td></tr>').join('') : state.tasks.map((x) => '<tr><td>' + x.taskNo + '</td><td>' + x.skillId + '</td><td>' + x.progress + '%</td><td class="status">' + x.status + '</td></tr>').join('');
-        document.getElementById('table').innerHTML = rows ? '<table><thead><tr>' + (state.view === 'skills' ? '<th>玩法</th><th>分类</th><th>版本</th><th>状态</th>' : '<th>任务编号</th><th>玩法</th><th>进度</th><th>状态</th>') + '</tr></thead><tbody>' + rows + '</tbody></table>' : '<p class="muted" style="padding:20px">暂无记录</p>';
+        if (!skillsView) {
+          const rows = state.tasks.map((x) => '<tr><td>' + x.taskNo + '</td><td>' + x.skillId + '</td><td>' + x.progress + '%</td><td class="status">' + x.status + '</td></tr>').join('');
+          document.getElementById('table').innerHTML = rows ? '<table><thead><tr><th>任务编号</th><th>Skill</th><th>进度</th><th>状态</th></tr></thead><tbody>' + rows + '</tbody></table>' : '<p class="muted" style="padding:20px">暂无记录</p>';
+        }
       };
-      const load = async () => { state.skills = await request('/admin/skills'); state.tasks = await request('/admin/tasks'); render(); };
+      const loadMetrics = async () => {
+        const response = await fetch(api + '/admin/skills', { headers: { 'X-Admin-Config': '1' } }).then((r) => r.json());
+        if (response.code !== 0) throw Error(response.message);
+        state.skills = response.data;
+        document.getElementById('published').textContent = state.skills.filter((x) => x.status === 'PUBLISHED').length;
+      };
+      const load = async () => { const [skills, tasks] = await Promise.all([fetch(api + '/admin/skills', { headers: { 'X-Admin-Config': '1' } }).then((r) => r.json()), request('/admin/tasks')]); if (skills.code !== 0) throw Error(skills.message); state.skills = skills.data; state.tasks = tasks; render(); };
       document.querySelectorAll('nav button').forEach((button) => button.addEventListener('click', () => { state.view = button.dataset.view; document.querySelectorAll('nav button').forEach((x) => x.classList.toggle('active', x === button)); render(); }));
       document.getElementById('refresh').addEventListener('click', () => load().catch((e) => { document.getElementById('table').innerHTML = '<p style="padding:20px;color:#b42318">' + e.message + '</p>'; }));
       load().catch((e) => { document.getElementById('table').innerHTML = '<p style="padding:20px;color:#b42318">' + e.message + '</p>'; });

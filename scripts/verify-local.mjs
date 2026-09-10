@@ -28,6 +28,14 @@ assert.equal(health.status, 200);
 assert.equal(health.body.data.provider, 'mock');
 const skills = await jsonRequest(`${apiBase}/api/v1/skills`);
 assert.equal(skills.body.data.length, 1);
+const models = await jsonRequest(`${apiBase}/api/v1/models`);
+assert.equal(models.status, 200);
+assert.equal(models.body.data.items.find((item) => item.providerId === 'mock')?.modelId, 'image-default');
+for (const providerId of ['openai', 'gemini', 'qwen']) {
+  const item = models.body.data.items.find((candidate) => candidate.providerId === providerId);
+  assert.ok(item);
+  assert.equal(typeof item.available, 'boolean');
+}
 
 const boundary = `----codex-${Date.now()}`;
 const uploadBody = Buffer.concat([
@@ -40,12 +48,15 @@ const upload = await jsonRequest(`${apiBase}/api/v1/uploads`, {
   headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
 });
 assert.equal(upload.body.code, 0);
+assert.equal(upload.body.data.mimeType, 'image/jpeg');
 
 const created = await jsonRequest(`${apiBase}/api/v1/tasks`, {
-  method: 'POST', body: JSON.stringify({ skillId: 'travel-postcard', images: [{ objectKey: upload.body.data.objectKey, mimeType: 'image/jpeg' }], parameters: {} }),
+  method: 'POST', body: JSON.stringify({ skillId: 'travel-postcard', providerId: 'mock', modelId: 'image-default', images: [{ objectKey: upload.body.data.objectKey, mimeType: 'image/jpeg' }], parameters: {} }),
   headers: { 'Content-Type': 'application/json' },
 });
 assert.equal(created.body.code, 0);
+assert.equal(created.body.data.providerId, 'mock');
+assert.equal(created.body.data.modelId, 'image-default');
 let result;
 for (let attempt = 0; attempt < 20; attempt += 1) {
   result = await jsonRequest(`${apiBase}/api/v1/tasks/${created.body.data.taskId}/result`);
@@ -54,6 +65,8 @@ for (let attempt = 0; attempt < 20; attempt += 1) {
 }
 assert.equal(result.body.data.task.status, 'SUCCEEDED');
 assert.equal(result.body.data.outputs.length, 1);
+assert.equal(result.body.data.task.providerId, 'mock');
+assert.equal(result.body.data.task.modelId, 'image-default');
 api.close();
 
 const admin = await createStaticServer({ rootDir: join(process.cwd(), 'apps/admin/static'), htmlReplacements: { '__API_PORT__': '3999' } });
@@ -90,6 +103,10 @@ assert.match(h5Page.text, /const configuredApiPort = '3999'/);
 assert.match(h5Page.text, /\/api\/v1/);
 assert.match(h5Page.text, /id="service-status"/);
 assert.match(h5Page.text, /id="create-status"/);
+assert.match(h5Page.text, /id="model-select"/);
+assert.match(h5Page.text, /providerId/);
+assert.match(h5Page.text, /Gemini/);
+assert.match(h5Page.text, /Qwen/);
 assert.match(h5Page.text, /上传图片/);
 assert.match(h5Page.text, /创建任务/);
 assert.match(h5Page.text, /API 服务不可用/);

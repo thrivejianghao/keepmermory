@@ -2,7 +2,7 @@ import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { AIProviderManager, MockProvider } from '@ai-photo/ai-provider';
+import { AIProviderManager, MockProvider, type ImageProvider } from '@ai-photo/ai-provider';
 import { SkillLoader, SkillRegistry, SkillValidator, SkillExecutor, WorkflowExecutor } from '../src/index.js';
 
 const manifest = {
@@ -35,5 +35,28 @@ describe('SkillLoader and SkillExecutor', () => {
     expect(result.provider).toBe('mock');
     expect(result.image.data).toEqual(Buffer.from('mock-image'));
     expect(registry.list()).toHaveLength(1);
+  });
+
+  it('passes the user-selected provider and model to the workflow provider', async () => {
+    const root = await mkdtemp(join('E:\\codex-temp', 'skills-selected-model-'));
+    const skillDir = join(root, 'travel-postcard');
+    await mkdir(skillDir);
+    await writeFile(join(skillDir, 'skill.json'), JSON.stringify(manifest));
+    await writeFile(join(skillDir, 'SKILL.md'), 'Create a cinematic travel postcard.');
+    const receivedModels: string[] = [];
+    const provider: ImageProvider = {
+      generate: async ({ model }) => { receivedModels.push(model); return { data: Buffer.from('selected-model-image'), mimeType: 'image/jpeg' }; },
+      edit: async ({ model }) => { receivedModels.push(model); return { data: Buffer.from('selected-model-image'), mimeType: 'image/jpeg' }; },
+      analyze: async () => ({ text: 'ok' }),
+    };
+    const registry = new SkillRegistry(new SkillLoader(root));
+    await registry.reload();
+    const executor = new SkillExecutor(registry, new WorkflowExecutor(new AIProviderManager(new Map([['mock', provider]]))));
+
+    const result = await executor.execute({ taskId: '1', userId: 'dev-user', skillId: 'travel-postcard', inputImages: [{ objectKey: 'uploads/a.jpg' }], parameters: { style: 'film' }, providerId: 'mock', modelId: 'selected-model' });
+
+    expect(receivedModels).toEqual(['selected-model']);
+    expect(result.provider).toBe('mock');
+    expect(result.model).toBe('selected-model');
   });
 });

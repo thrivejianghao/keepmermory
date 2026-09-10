@@ -1,1 +1,1 @@
-{ "navigationBarTitleText": "全部玩法", "usingComponents": { "skill-card": "/components/skill-card/index" } }
+{ "navigationBarTitleText": "全部 Skill", "usingComponents": { "skill-card": "/components/skill-card/index" } }

@@ -53,6 +53,35 @@ export class InMemoryDatabase implements Database {
     return skill ? cloneRecord(skill) : undefined;
   }
 
+  public async updateSkill(id: string, input: Omit<CreateSkillInput, 'id'>): Promise<SkillRecord> {
+    const current = this.skills.get(id);
+    if (!current) throw new Error('SKILL_NOT_FOUND');
+    const updated: SkillRecord = {
+      id: current.id,
+      slug: input.slug ?? id,
+      name: input.name,
+      description: input.description,
+      ...(input.coverUrl ? { coverUrl: input.coverUrl } : {}),
+      category: input.category,
+      status: input.status,
+      ...(input.currentVersion ? { currentVersion: input.currentVersion } : {}),
+      sort: input.sort ?? 0,
+      createdAt: current.createdAt,
+      updatedAt: new Date(),
+    };
+    this.skills.set(id, updated);
+    return cloneRecord(updated);
+  }
+
+  public async deleteSkill(id: string): Promise<void> {
+    if (!this.skills.has(id)) throw new Error('SKILL_NOT_FOUND');
+    if ([...this.tasks.values()].some((task) => task.skillId === id)) throw new Error('SKILL_IN_USE');
+    this.skills.delete(id);
+    for (const [versionId, version] of this.versions) {
+      if (version.skillId === id) this.versions.delete(versionId);
+    }
+  }
+
   public async listSkills(filter: { status?: SkillRecord['status'] } = {}): Promise<SkillRecord[]> {
     return [...this.skills.values()]
       .filter((skill) => !filter.status || skill.status === filter.status)
@@ -84,6 +113,20 @@ export class InMemoryDatabase implements Database {
     return cloneRecord(version);
   }
 
+  public async upsertSkillVersion(input: CreateSkillVersionInput): Promise<SkillVersionRecord> {
+    const id = `${input.skillId}@${input.version}`;
+    const current = this.versions.get(id);
+    const next = await this.createSkillVersion(input);
+    if (!current) return next;
+    const updated: SkillVersionRecord = {
+      ...next,
+      createdAt: current.createdAt,
+      ...(current.publishedAt ? { publishedAt: current.publishedAt } : {}),
+    };
+    this.versions.set(id, updated);
+    return cloneRecord(updated);
+  }
+
   public async getSkillVersion(skillId: string, version?: string): Promise<SkillVersionRecord | undefined> {
     const skill = this.skills.get(skillId);
     const selected = version ?? skill?.currentVersion;
@@ -97,6 +140,8 @@ export class InMemoryDatabase implements Database {
     const skillVersion = input.skillVersion ?? skill?.currentVersion;
     if (!skillVersion) throw new Error('SKILL_VERSION_NOT_FOUND');
     const version = this.versions.get(`${input.skillId}@${skillVersion}`);
+    const providerId = input.providerId ?? version?.providerId;
+    const modelId = input.modelId ?? version?.modelId;
     const now = new Date();
     const task: TaskRecord = {
       id: String(++this.taskSequence),
@@ -109,8 +154,8 @@ export class InMemoryDatabase implements Database {
       progress: 0,
       input: cloneRecord(input.input),
       parameters: cloneRecord(input.parameters),
-      ...(version?.providerId ? { providerId: version.providerId } : {}),
-      ...(version?.modelId ? { modelId: version.modelId } : {}),
+      ...(providerId ? { providerId } : {}),
+      ...(modelId ? { modelId } : {}),
       retryCount: 0,
       createdAt: now,
       updatedAt: now,
@@ -130,6 +175,13 @@ export class InMemoryDatabase implements Database {
     const updated: TaskRecord = { ...current, ...cloneRecord(patch), updatedAt: new Date() };
     this.tasks.set(id, updated);
     return cloneRecord(updated);
+  }
+
+  public async deleteTask(id: string): Promise<void> {
+    if (!this.tasks.delete(id)) throw new Error('TASK_NOT_FOUND');
+    for (const [outputId, output] of this.outputs) {
+      if (output.taskId === id) this.outputs.delete(outputId);
+    }
   }
 
   public async addTaskOutput(input: Omit<TaskOutputRecord, 'id' | 'createdAt'>): Promise<TaskOutputRecord> {

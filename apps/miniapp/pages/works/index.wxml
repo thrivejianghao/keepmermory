@@ -1,1 +1,16 @@
-<view class="page"><text class="eyebrow">YOUR ARCHIVE</text><text class="title">我的作品</text><view wx:if="{{items.length}}" class="works-grid"><view wx:for="{{items}}" wx:key="task.id" class="work" data-id="{{item.task.id}}" bindtap="open"><image src="{{apiBase}}/files/{{item.outputs[0].objectKey}}" mode="aspectFill" /><text>{{item.task.taskNo}}</text></view></view><view wx:elif="{{loading}}" class="state">正在整理作品…</view><view wx:elif="{{error}}" class="state error"><text>{{error}}</text><button class="secondary" bindtap="load">重试</button></view><view wx:else class="state"><strong>还没有作品</strong><text>从一个喜欢的玩法开始</text><button class="primary" bindtap="create">去创作</button></view></view>
+<view class="page works-page">
+  <text class="eyebrow">YOUR ARCHIVE</text>
+  <text class="title">我的作品</text>
+  <view wx:if="{{items.length}}" class="works-grid">
+    <view wx:for="{{items}}" wx:key="task.id" class="work" data-id="{{item.task.id}}" bindtap="open">
+      <image src="{{item.outputs[0].url}}" mode="aspectFill" />
+      <view class="work-meta"><text>{{item.task.taskNo}}</text><button class="more" data-index="{{index}}" catchtap="actions" aria-label="作品操作">⋯</button></view>
+    </view>
+  </view>
+  <view wx:if="{{loading && !items.length}}" class="state">正在整理作品…</view>
+  <view wx:elif="{{error && !items.length}}" class="state error"><text>{{error}}</text><button class="secondary" bindtap="retry">重试</button></view>
+  <view wx:elif="{{!items.length}}" class="state"><text class="state-title">还没有作品</text><text>从一个喜欢的 Skill 开始</text><button class="primary" bindtap="create">去创作</button></view>
+  <view wx:if="{{error && items.length}}" class="inline-error"><text>{{error}}</text><text bindtap="loadMore">重试</text></view>
+  <button wx:if="{{hasMore}}" class="load-more" loading="{{loadingMore}}" disabled="{{loadingMore}}" bindtap="loadMore">{{loadingMore ? '加载中…' : '加载更多'}}</button>
+  <text wx:if="{{items.length && !hasMore}}" class="end-note">共 {{total}} 件作品</text>
+</view>

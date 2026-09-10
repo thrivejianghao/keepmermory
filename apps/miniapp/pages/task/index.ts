@@ -1,3 +1,46 @@
-import { api } from '../../services/api';
-const labels = [{ limit: 20, text: '正在分析照片' }, { limit: 55, text: '正在生成画面' }, { limit: 85, text: '正在优化细节' }, { limit: 101, text: '即将完成' }];
-Page({ data: { id: '', status: 'QUEUED', progress: 5, label: '正在排队', error: '' }, timer: 0 as number, onLoad(options: { id?: string }) { this.setData({ id: options.id ?? '' }); void this.poll(); }, onUnload() { clearTimeout(this.timer); }, async poll() { try { const task = await api.task(this.data.id); const label = labels.find((item) => task.progress < item.limit)?.text ?? '即将完成'; this.setData({ status: task.status, progress: task.progress, label, error: task.errorMessage ?? '' }); if (task.status === 'SUCCEEDED') { setTimeout(() => wx.navigateTo({ url: `/pages/result/index?id=${task.id}` }), 350); return; } if (task.status === 'FAILED' || task.status === 'CANCELLED') return; this.timer = setTimeout(() => void this.poll(), 1200) as unknown as number; } catch (reason) { this.setData({ error: reason instanceof Error ? reason.message : '查询失败' }); } }, retry() { this.setData({ error: '' }); void this.poll(); } });
+import type { Task } from '../../services/api';
+import { describeTask, taskService } from '../../services/task-service';
+
+Page({
+  data: {
+    id: '', skillId: '', status: 'PENDING', progress: 0,
+    label: '正在提交任务', detail: '正在准备照片和创作参数',
+    failed: false, networkError: '',
+  },
+  timer: 0,
+  leaving: false,
+  onLoad(options: { id?: string }) {
+    this.setData({ id: options.id ?? '' });
+    void this.poll();
+  },
+  onUnload() { this.leaving = true; clearTimeout(this.timer); },
+  async poll() {
+    if (!this.data.id || this.leaving) return;
+    try {
+      const task: Task = await taskService.get(this.data.id);
+      const presentation = describeTask(task);
+      this.setData({
+        skillId: task.skillId,
+        status: task.status,
+        progress: task.progress,
+        label: presentation.label,
+        detail: task.errorMessage && presentation.failed ? task.errorMessage : presentation.detail,
+        failed: presentation.failed,
+        networkError: '',
+      });
+      if (presentation.succeeded) {
+        this.timer = setTimeout(() => wx.redirectTo({ url: `/pages/result/index?id=${encodeURIComponent(task.id)}` }), 350);
+        return;
+      }
+      if (presentation.terminal) return;
+      this.timer = setTimeout(() => void this.poll(), 1200);
+    } catch (reason) {
+      this.setData({ networkError: reason instanceof Error ? reason.message : '任务状态查询失败' });
+    }
+  },
+  retryQuery() { this.setData({ networkError: '' }); void this.poll(); },
+  retryCreation() {
+    if (this.data.skillId) wx.redirectTo({ url: `/pages/create/index?id=${encodeURIComponent(this.data.skillId)}` });
+  },
+  back() { wx.navigateBack({ delta: 1, fail: () => wx.switchTab({ url: '/pages/home/index' }) }); },
+});

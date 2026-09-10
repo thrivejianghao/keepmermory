@@ -1,4 +1,5 @@
 .home { padding-top: calc(96rpx + env(safe-area-inset-top)); }
 .masthead { padding: 18rpx 4rpx 4rpx; }
 .intro { display: block; margin-top: 18rpx; max-width: 570rpx; color: var(--muted); line-height: 1.65; }
+.featured { width: 100%; }
 .skill-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18rpx; }

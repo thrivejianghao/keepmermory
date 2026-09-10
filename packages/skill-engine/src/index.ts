@@ -1,7 +1,7 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ImageInput, SkillManifest, SkillParameterDefinition } from '@ai-photo/shared';
-import type { AIProviderManager, ImageResult } from '@ai-photo/ai-provider';
+import type { AIProviderManager, ImageResult, SkillAgent } from '@ai-photo/ai-provider';
 
 export interface ValidationResult {
   valid: boolean;
@@ -21,6 +21,8 @@ export interface SkillExecutionInput {
   version?: string;
   inputImages: ImageInput[];
   parameters: Record<string, unknown>;
+  providerId?: string;
+  modelId?: string;
   metadata?: Record<string, unknown>;
 }
 
@@ -113,6 +115,10 @@ export class SkillRegistry {
     this.skills.set(skill.manifest.id, skill);
   }
 
+  public unregister(skillId: string): void {
+    this.skills.delete(skillId);
+  }
+
   public get(skillId: string): LoadedSkill {
     const skill = this.skills.get(skillId);
     if (!skill) throw new Error('SKILL_NOT_FOUND');
@@ -131,24 +137,42 @@ export interface SkillContext {
   skillVersion: string;
   inputImages: ImageInput[];
   parameters: Record<string, unknown>;
+  providerId?: string;
+  modelId?: string;
   metadata: Record<string, unknown>;
 }
 
 export class WorkflowExecutor {
-  public constructor(private readonly providers: AIProviderManager) {}
+  public constructor(private readonly providers: AIProviderManager, private skillAgent?: SkillAgent) {}
+
+  public setSkillAgent(skillAgent?: SkillAgent): void {
+    this.skillAgent = skillAgent;
+  }
 
   public async execute(skill: LoadedSkill, context: SkillContext): Promise<SkillExecutionResult> {
-    const provider = this.providers.getProvider(skill.manifest.provider.type);
-    const prompt = buildPrompt(skill, context);
+    const providerType = context.providerId ?? skill.manifest.provider.type;
+    const model = context.modelId ?? skill.manifest.provider.model;
+    const provider = this.providers.getProvider(providerType);
     const steps = skill.manifest.workflow.steps ?? [{ type: 'image_generate' as const }];
+    const basePrompt = buildPrompt(skill, context);
+    const directPrompt = [basePrompt, ...steps.map((step) => step.prompt).filter((prompt): prompt is string => Boolean(prompt))].join('\n');
+    const prompt = this.skillAgent ? (await this.skillAgent.plan({
+      skillId: skill.manifest.id,
+      skillName: skill.manifest.name,
+      skillVersion: skill.manifest.version,
+      instructions: skill.content,
+      prompt: directPrompt,
+      parameters: context.parameters,
+    })).prompt : undefined;
     let image: ImageResult | undefined;
     for (const step of steps) {
-      if (step.type === 'image_generate') image = await provider.generate({ prompt: step.prompt ? `${prompt}\n${step.prompt}` : prompt, images: context.inputImages, model: skill.manifest.provider.model, metadata: context.metadata });
-      else if (step.type === 'image_edit') image = await provider.edit({ prompt: step.prompt ? `${prompt}\n${step.prompt}` : prompt, images: context.inputImages, model: skill.manifest.provider.model, metadata: context.metadata });
-      else if (step.type === 'vision') await provider.analyze({ images: context.inputImages, prompt: step.prompt ?? prompt });
+      const executionPrompt = prompt ?? (step.prompt ? `${basePrompt}\n${step.prompt}` : basePrompt);
+      if (step.type === 'image_generate') image = await provider.generate({ prompt: executionPrompt, images: context.inputImages, model, metadata: context.metadata });
+      else if (step.type === 'image_edit') image = await provider.edit({ prompt: executionPrompt, images: context.inputImages, model, metadata: context.metadata });
+      else if (step.type === 'vision') await provider.analyze({ images: context.inputImages, prompt: executionPrompt });
     }
     if (!image) throw new Error('WORKFLOW_NO_IMAGE');
-    return { image, provider: skill.manifest.provider.type, model: skill.manifest.provider.model, prompt };
+    return { image, provider: providerType, model, prompt: prompt ?? directPrompt };
   }
 }
 
@@ -166,6 +190,8 @@ export class SkillExecutor {
       skillVersion: skill.manifest.version,
       inputImages: input.inputImages,
       parameters: input.parameters,
+      ...(input.providerId ? { providerId: input.providerId } : {}),
+      ...(input.modelId ? { modelId: input.modelId } : {}),
       metadata: input.metadata ?? {},
     });
   }

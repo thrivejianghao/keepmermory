@@ -1,1 +1,28 @@
-<view class="page"><view wx:if="{{loading}}" class="state">正在准备…</view><block wx:elif="{{skill}}"><text class="eyebrow">{{skill.name}}</text><text class="title">选择一张喜欢的照片</text><view class="photo-grid"><view wx:for="{{photos}}" wx:key="*this" class="photo" data-src="{{item}}" bindtap="preview"><image src="{{item}}" mode="aspectFill" /></view><view wx:if="{{photos.length < skill.input.images.max}}" class="add-photo" bindtap="choose"><text>＋</text><small>选择照片</small></view></view><view wx:for="{{parameterList}}" wx:key="key" class="parameter surface"><text>{{item.label}}</text><picker mode="selector" range="{{item.options}}" range-key="label" data-index="{{index}}" bindchange="changeParameter"><view>{{item.value}}⌄</view></picker></view><view wx:if="{{error}}" class="error-message">{{error}}</view><button class="primary" loading="{{uploading}}" disabled="{{uploading}}" bindtap="generate">{{uploading ? '正在上传…' : '开始生成'}}</button></block></view>
+<view class="page create-page">
+  <view wx:if="{{loading}}" class="state">正在准备…</view>
+  <view wx:elif="{{error && !skill}}" class="state error"><text>{{error}}</text><button class="secondary" bindtap="load">重试</button></view>
+  <block wx:elif="{{skill}}">
+    <text class="eyebrow">{{skill.name}}</text>
+    <text class="title">选择喜欢的照片</text>
+    <text class="photo-hint">需要 {{skill.input.images.min}}–{{skill.input.images.max}} 张，较大的照片会自动压缩</text>
+    <view class="photo-grid">
+      <view wx:for="{{photos}}" wx:key="path" class="photo" data-src="{{item.path}}" bindtap="preview">
+        <image src="{{item.path}}" mode="aspectFill" />
+        <button class="remove-photo" data-index="{{index}}" catchtap="removePhoto" aria-label="移除照片">×</button>
+      </view>
+      <view wx:if="{{photos.length < skill.input.images.max}}" class="add-photo" bindtap="choose"><text>＋</text><text class="add-label">选择照片</text></view>
+    </view>
+    <view class="parameter surface">
+      <text>AI 模型</text>
+      <picker mode="selector" range="{{modelLabels}}" value="{{modelIndex}}" bindchange="changeModel"><view class="picker-value">{{selectedModel ? modelLabels[modelIndex] : '没有可用模型'}}⌄</view></picker>
+    </view>
+    <view wx:for="{{parameterFields}}" wx:key="key" class="parameter surface">
+      <text>{{item.label}}</text>
+      <picker wx:if="{{item.type === 'select'}}" mode="selector" range="{{item.options}}" range-key="label" value="{{item.optionIndex}}" data-index="{{index}}" bindchange="changeSelect"><view class="picker-value">{{item.options[item.optionIndex].label}}⌄</view></picker>
+      <switch wx:elif="{{item.type === 'boolean'}}" checked="{{item.value}}" color="#171717" data-index="{{index}}" bindchange="changeBoolean" />
+      <input wx:else class="parameter-input" type="{{item.type === 'number' ? 'number' : 'text'}}" value="{{item.value}}" data-index="{{index}}" bindinput="changeInput" />
+    </view>
+    <view wx:if="{{error}}" class="error-message">{{error}}</view>
+    <button class="primary" loading="{{submitting}}" disabled="{{submitting || !selectedModel}}" bindtap="generate">{{submitLabel}}</button>
+  </block>
+</view>

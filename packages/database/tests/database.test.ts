@@ -61,4 +61,36 @@ describe('InMemoryDatabase', () => {
     expect(task.skillVersion).toBe('1.0.0');
     expect(task.status).toBe('PENDING');
   });
+
+  it('inherits the provider and model from the selected skill version', async () => {
+    const database = new InMemoryDatabase();
+    await database.ensureDevUser();
+    await database.createSkill({
+      id: 'qwen-skill',
+      name: 'Qwen Skill',
+      description: 'image edit',
+      category: 'photo',
+      status: 'PUBLISHED',
+      currentVersion: '1.0.0',
+    });
+    await database.createSkillVersion({
+      skillId: 'qwen-skill',
+      version: '1.0.0',
+      status: 'PUBLISHED',
+      manifest: {},
+      providerId: 'qwen',
+      modelId: 'wan2.7-image',
+    });
+
+    const task = await database.createTask({
+      userId: 'dev-user',
+      skillId: 'qwen-skill',
+      skillVersion: '1.0.0',
+      input: { images: [{ objectKey: 'uploads/example.jpg' }] },
+      parameters: {},
+    });
+
+    expect(task.providerId).toBe('qwen');
+    expect(task.modelId).toBe('wan2.7-image');
+  });
 });

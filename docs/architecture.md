@@ -4,7 +4,8 @@
 
 ```text
 Mini Program / Admin -> API -> Task Service -> Queue
-                                      Worker -> Skill Engine -> Provider Manager -> AI Provider
+                                      Worker -> Skill Engine -> optional Skill Agent (tool call)
+                                                           -> Provider Manager -> Image Provider
                                                            -> Storage Provider
                                                            -> Repository -> Database
 ```
@@ -16,9 +17,18 @@ HTTP services, databases, storage, or provider SDKs.
 ## Extension rules
 
 - Skills are discovered from `skills/*`; core code must not branch on a skill identifier.
+- Admin-created and edited Skills are validated by `SkillAdminService`, registered through the
+  same runtime registry, and persisted as local overlays. The API controller does not edit Skill
+  source folders directly.
+- Public Skill discovery is projected from published database records and executable registry
+  entries, so draft/offline/deleted Skills cannot be submitted by clients.
 - AI integrations implement the shared provider contract and are selected by provider metadata.
 - Storage consumers depend on `StorageProvider`, not a filesystem implementation.
 - Application frontends access backend behavior through services, never provider or database code.
+- Mini Program pages depend on `skill-service`, `upload-service`, `task-service`, and `work-service`;
+  only the shared API client uses WeChat networking primitives.
+- Public work listing and deletion are owned by the API `WorkService`, which enforces user and
+  successful-task ownership before calling the database abstraction.
 - Secrets stay in environment variables and must not be logged or committed.
 
 ## Phase 1 review

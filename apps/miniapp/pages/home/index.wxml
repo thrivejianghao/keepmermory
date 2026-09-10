@@ -1,1 +1,23 @@
-<view class="page home"><view class="masthead"><text class="eyebrow">AI PHOTO SKILLS</text><text class="title">今天想怎么玩？</text><text class="intro">挑一种风格，把此刻变成一张值得留下的作品。</text></view><view wx:if="{{loading}}" class="state">正在发现新玩法…</view><view wx:elif="{{error}}" class="state error"><strong>暂时没有连上</strong><text>{{error}}</text><button class="secondary" bindtap="load">重新加载</button></view><block wx:else><view class="section-head"><text>热门玩法</text><text class="link" bindtap="openAll">查看全部 →</text></view><view wx:if="{{skills.length}}" class="skill-grid"><skill-card wx:for="{{skills}}" wx:key="id" skill="{{item}}" index="{{index}}" /></view><view wx:else class="state"><strong>玩法正在准备中</strong><text>稍后回来看看</text></view></block></view>
+<view class="page home">
+  <view class="masthead">
+    <text class="eyebrow">AI PHOTO SKILLS</text>
+    <text class="title">今天想怎么玩？</text>
+    <text class="intro">挑一种风格，把此刻变成一张值得留下的作品。</text>
+  </view>
+  <view wx:if="{{loading}}" class="state">正在发现新玩法…</view>
+  <view wx:elif="{{error}}" class="state error">
+    <text class="state-title">暂时没有连上</text><text>{{error}}</text>
+    <button class="secondary" bindtap="load">重新加载</button>
+  </view>
+  <block wx:else>
+    <block wx:if="{{featured}}">
+      <view class="section-head"><text>今日推荐</text><text class="link" bindtap="openAll">全部 Skill</text></view>
+      <view class="featured"><skill-card skill="{{featured}}" index="{{0}}" featured="{{true}}" /></view>
+    </block>
+    <block wx:if="{{popular.length}}">
+      <view class="section-head"><text>热门 Skill</text><text class="link" bindtap="openAll">查看全部</text></view>
+      <view class="skill-grid"><skill-card wx:for="{{popular}}" wx:key="id" skill="{{item}}" index="{{index + 1}}" /></view>
+    </block>
+    <view wx:if="{{!featured}}" class="state"><text class="state-title">Skill 正在准备中</text><text>稍后回来看看</text></view>
+  </block>
+</view>

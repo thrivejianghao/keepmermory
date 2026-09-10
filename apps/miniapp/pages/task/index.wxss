@@ -1,9 +1,12 @@
-.task-page { min-height: 100vh; padding: 80rpx 44rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #171717; color: #fff; }
+.task-page { min-height: 100vh; padding: 80rpx 44rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--ink); color: var(--surface); }
 .visual { position: relative; width: 360rpx; height: 440rpx; display: grid; place-items: center; background: #30302d; overflow: hidden; font-size: 62rpx; font-weight: 800; }
-.scan { position: absolute; left: 0; right: 0; height: 4rpx; background: #d7ff45; animation: scan 2.1s ease-in-out infinite; }
-.task-title { font-size: 38rpx; font-weight: 700; margin-top: 54rpx; }
-.task-copy { color: #9f9f98; text-align: center; line-height: 1.6; margin-top: 14rpx; }
+.visual-failed { background: var(--danger); }
+.scan { position: absolute; left: 0; right: 0; height: 4rpx; background: var(--accent); animation: scan 2.1s ease-in-out infinite; }
+.task-title { margin-top: 54rpx; font-size: 38rpx; font-weight: 700; text-align: center; }
+.task-copy { max-width: 590rpx; margin-top: 14rpx; color: #b6b7b1; line-height: 1.6; text-align: center; }
 .progress { width: 100%; height: 6rpx; margin-top: 42rpx; background: #363633; }
-.progress view { height: 100%; background: #d7ff45; transition: width .3s; }
-.secondary { margin-top: 36rpx; color: #fff; border-color: #fff; }
+.progress view { height: 100%; background: var(--accent); transition: width .3s; }
+.dark-action { margin-top: 36rpx; color: var(--surface); border-color: var(--surface); }
+.failure-actions { width: 100%; display: grid; gap: var(--space-2); margin-top: 36rpx; }
+.accent-action { background: var(--accent); color: var(--ink); }
 @keyframes scan { 0%, 100% { top: 5%; } 50% { top: 94%; } }

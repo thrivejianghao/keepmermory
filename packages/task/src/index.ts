@@ -63,6 +63,7 @@ export class TaskService {
     private readonly queue: Pick<TaskQueue, 'add'>,
     private readonly executor: SkillExecutor,
     private readonly storage: StorageProvider,
+    private readonly fetcher: typeof fetch = fetch,
   ) {}
 
   public async createTask(input: CreateTaskInput): Promise<TaskRecord> {
@@ -86,12 +87,14 @@ export class TaskService {
       version: task.skillVersion,
       inputImages: task.input.images,
       parameters: task.parameters,
+      ...(task.providerId ? { providerId: task.providerId } : {}),
+      ...(task.modelId ? { modelId: task.modelId } : {}),
     });
     const extension = result.image.mimeType === 'image/png' ? '.png' : extname(task.input.images[0]?.objectKey ?? '') || '.jpg';
     const objectKey = `outputs/${task.taskNo}${extension}`;
     if (result.image.data) await this.storage.save(result.image.data, objectKey);
     else if (result.image.objectKey?.startsWith('http')) {
-      const response = await fetch(result.image.objectKey);
+      const response = await this.fetcher(result.image.objectKey);
       if (!response.ok) throw new Error('AI_PROVIDER_ERROR');
       await this.storage.save(Buffer.from(await response.arrayBuffer()), objectKey);
     } else throw new Error('TASK_FAILED');

@@ -1,1 +1,14 @@
-<view class="task-page"><view class="visual"><view class="scan"></view><text>{{progress}}%</text></view><text class="task-title">{{error ? '这次没有完成' : label}}</text><text class="task-copy">{{error || '请稍等片刻，作品完成后会自动打开'}}</text><view class="progress"><view style="width: {{progress}}%"></view></view><button wx:if="{{error}}" class="secondary" bindtap="retry">重新查询</button></view>
+<view class="task-page">
+  <view class="visual {{failed ? 'visual-failed' : ''}}">
+    <view wx:if="{{!failed}}" class="scan"></view>
+    <text>{{failed ? '!' : progress + '%'}}</text>
+  </view>
+  <text class="task-title">{{networkError ? '连接中断' : label}}</text>
+  <text class="task-copy">{{networkError || detail}}</text>
+  <view wx:if="{{!failed && !networkError}}" class="progress"><view style="width: {{progress}}%"></view></view>
+  <button wx:if="{{networkError}}" class="secondary dark-action" bindtap="retryQuery">重新查询</button>
+  <view wx:if="{{failed}}" class="failure-actions">
+    <button class="primary accent-action" bindtap="retryCreation">重新生成</button>
+    <button class="secondary dark-action" bindtap="back">返回</button>
+  </view>
+</view>

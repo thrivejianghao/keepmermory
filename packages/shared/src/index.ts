@@ -120,6 +120,8 @@ export interface CreateTaskInput {
   userId: string;
   skillId: string;
   skillVersion?: string;
+  providerId?: string;
+  modelId?: string;
   input: { images: ImageInput[] };
   parameters: Record<string, unknown>;
 }

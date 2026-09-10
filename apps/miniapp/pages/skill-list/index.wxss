@@ -1,4 +1,4 @@
 .filter { display: flex; gap: 12rpx; overflow-x: auto; padding: 4rpx 0 28rpx; white-space: nowrap; }
-.filter text { padding: 13rpx 22rpx; border: 2rpx solid var(--line); border-radius: 999rpx; background: #fff; font-size: 24rpx; }
-.filter text.active { background: var(--ink); border-color: var(--ink); color: #fff; }
+.filter text { padding: 13rpx 22rpx; border: 2rpx solid var(--line); border-radius: 999rpx; background: var(--surface); font-size: 24rpx; }
+.filter text.active { background: var(--ink); border-color: var(--ink); color: var(--surface); }
 .skill-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18rpx; }

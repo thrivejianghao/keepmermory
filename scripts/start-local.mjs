@@ -1,11 +1,15 @@
 import { spawn } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseEnv } from 'node:util';
 import { createStaticServer } from './static-server.mjs';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const envFile = join(root, '.env');
+if (existsSync(envFile)) Object.assign(process.env, parseEnv(readFileSync(envFile, 'utf8')));
 const node = process.execPath;
-const api = spawn(node, [join(root, 'apps/api/dist/main.js')], {
+const api = spawn(node, [...(process.execArgv.includes('--jitless') ? ['--jitless'] : []), join(root, 'apps/api/dist/main.js')], {
   cwd: root,
   env: { ...process.env, AI_PROVIDER: process.env.AI_PROVIDER ?? 'mock' },
   stdio: 'inherit',

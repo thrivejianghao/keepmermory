@@ -1,10 +1,17 @@
 .detail { padding-bottom: 150rpx; }
-.hero-art { height: 700rpx; display: grid; place-items: center; margin: -32rpx -28rpx 34rpx; background: #345995; color: #fff; font-size: 160rpx; font-weight: 900; }
+.hero-image, .hero-art { width: auto; height: 700rpx; margin: -32rpx -28rpx 34rpx; }
+.hero-image { display: block; width: calc(100% + 56rpx); background: var(--soft); }
+.hero-art { display: grid; place-items: center; padding: var(--space-5); background: var(--blue); color: var(--surface); font-size: 72rpx; font-weight: 900; text-align: center; }
 .description { display: block; color: var(--muted); margin-top: 18rpx; line-height: 1.65; }
-.before-after { display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx; margin-top: 38rpx; }
-.before-after > view > text { color: var(--muted); font-size: 20rpx; }
-.before-after > view > view { height: 190rpx; display: grid; place-items: center; margin-top: 8rpx; background: #e7e7e2; color: var(--muted); }
-.before-after > view:last-child > view { background: #d7ff45; color: #171717; }
-.requirements { margin-top: 24rpx; padding: 24rpx; display: grid; gap: 12rpx; }
-.requirements text { color: var(--muted); }
+.before-after { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-2); margin-top: 38rpx; }
+.before-after > view > text { color: var(--muted); font-size: var(--text-xs); }
+.before-after image, .before-tile, .after-tile { width: 100%; height: 190rpx; margin-top: var(--space-1); }
+.before-tile, .after-tile { display: grid; place-items: center; padding: var(--space-2); text-align: center; }
+.before-tile { background: var(--soft); color: var(--muted); }
+.after-tile { background: var(--accent); color: var(--ink); font-weight: 700; }
+.requirements { margin-top: var(--space-3); padding: var(--space-3); display: grid; gap: 12rpx; }
+.requirements > text:not(.block-title) { color: var(--muted); }
+.block-title { font-weight: 700; }
+.manifest-row { display: flex; justify-content: space-between; gap: var(--space-2); color: var(--muted); font-size: var(--text-sm); }
+.manifest-row text:first-child { color: var(--ink); }
 .fixed-action { position: fixed; left: 28rpx; right: 28rpx; bottom: calc(24rpx + env(safe-area-inset-bottom)); width: auto; }

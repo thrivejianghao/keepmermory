@@ -1,0 +1,107 @@
+import assert from 'node:assert/strict';
+import { mkdtemp, mkdir, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { createApiServer } from '../apps/api/dist/index.js';
+import { createStaticServer } from './static-server.mjs';
+
+const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE).href);
+const root = await mkdtemp(join(process.env.TEMP, 'admin-models-'));
+const output = join(root, 'output/playwright');
+const configFile = join(root, 'models.json');
+await mkdir(output, { recursive: true });
+const api = await createApiServer({ skillsDir: join(process.cwd(), 'skills'), storageDir: join(root, 'storage'),
+  configFile, aiProvider: 'mock', openAiApiKey: '', geminiApiKey: '', qwenApiKey: '' });
+await new Promise((resolve) => api.listen(0, '127.0.0.1', resolve));
+const admin = await createStaticServer({ rootDir: join(process.cwd(), 'apps/admin/static'), htmlReplacements: { '__API_PORT__': String(api.address().port) } });
+await new Promise((resolve) => admin.listen(0, '127.0.0.1', resolve));
+const url = `http://127.0.0.1:${admin.address().port}/`;
+const browser = await chromium.launch({ channel: 'msedge', headless: true });
+try {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 960 } });
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(url);
+  assert.equal(await page.getByRole('button', { name: '模型配置', exact: true }).count(), 1, 'Admin navigation must expose model configuration');
+  await page.getByRole('button', { name: '模型配置', exact: true }).click();
+  await page.waitForTimeout(500);
+  assert.equal(await page.locator('#openai-model').count(), 1, `Admin model form must render: ${errors.join('; ')} ${await page.locator('#model-settings').textContent()}`);
+  assert.equal(await page.locator('#skill-agent-model').count(), 1, 'Admin must expose the separate Skill agent model field');
+  assert.equal(await page.locator('.metrics').isVisible(), false, 'Task statistics must be hidden on configuration view');
+  await page.locator('#skill-agent-model').fill('qwen3-coder-plus');
+  await page.locator('#skill-agent-endpoint').fill('https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1');
+  await page.locator('#skill-agent-key').fill('browser-agent-secret');
+  await page.locator('#skill-agent-enabled').check();
+  await page.locator('#openai-model').fill('admin-test-image');
+  await page.locator('#openai-endpoint').fill('https://zjapi.com/');
+  await page.locator('#openai-key').fill('browser-test-secret');
+  await page.locator('#openai-enabled').check();
+  await page.locator('#default-provider').selectOption('openai');
+  await page.getByRole('button', { name: '保存配置', exact: true }).click();
+  await page.locator('.model-config-status').filter({ hasText: '已保存' }).waitFor();
+  assert.equal(await page.locator('#openai-key').inputValue(), '');
+  assert.equal(await page.locator('#skill-agent-key').inputValue(), '');
+  assert.equal(await page.locator('#openai-endpoint').inputValue(), 'https://zjapi.com/v1');
+  await page.reload();
+  await page.getByRole('button', { name: '模型配置', exact: true }).click();
+  await page.locator('#openai-model').waitFor();
+  assert.equal(await page.locator('#openai-model').inputValue(), 'admin-test-image');
+  assert.equal(await page.locator('#skill-agent-model').inputValue(), 'qwen3-coder-plus');
+  assert.equal(await page.locator('#skill-agent-endpoint').inputValue(), 'https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1');
+  assert.equal(await page.locator('#default-provider').inputValue(), 'openai');
+  assert.match(await page.locator('#openai-key-status').textContent(), /已配置/);
+  assert.match(await page.locator('#skill-agent-key-status').textContent(), /已配置/);
+  assert.equal(await page.locator('#openai-key').inputValue(), '');
+  assert.equal((await page.content()).includes('browser-test-secret'), false);
+  assert.equal((await page.content()).includes('browser-agent-secret'), false);
+  assert.equal(await page.evaluate(() => Object.values(localStorage).concat(Object.values(sessionStorage)).some((item) => item.includes('browser-test-secret'))), false);
+  await page.locator('#openai-key').fill('browser-replacement-secret');
+  await page.getByRole('button', { name: '保存配置', exact: true }).click();
+  await page.locator('.model-config-status').filter({ hasText: 'API Key 已更新' }).waitFor();
+  const persisted = await readFile(configFile, 'utf8');
+  assert.equal(persisted.includes('browser-test-secret'), false, 'A new key must replace the previous key');
+  assert.equal(persisted.includes('browser-replacement-secret'), true);
+  assert.equal(persisted.includes('browser-agent-secret'), true, 'The Skill agent key must only be persisted by the API');
+  assert.equal(await page.locator('#openai-key').inputValue(), '', 'Keys must be cleared from the form after replacement');
+  await page.screenshot({ path: join(output, 'model-config-desktop.png'), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  await page.screenshot({ path: join(output, 'model-config-mobile.png'), fullPage: true });
+  await page.locator('#openai-clear-key').check();
+  await page.getByRole('button', { name: '保存配置', exact: true }).click();
+  await page.locator('.model-config-error:not(:empty)').waitFor();
+  assert.equal(await page.locator('#openai-model').inputValue(), 'admin-test-image', 'Rejected save retains the draft');
+  await page.locator('#default-provider').selectOption('mock');
+  await page.locator('#openai-enabled').uncheck();
+  await page.locator('#skill-agent-enabled').uncheck();
+  await page.locator('#skill-agent-clear-key').check();
+  await page.getByRole('button', { name: '保存配置', exact: true }).click();
+  await page.locator('.model-config-status').filter({ hasText: '已保存' }).waitFor();
+  assert.match(await page.locator('#openai-key-status').textContent(), /未配置/);
+  assert.match(await page.locator('#skill-agent-key-status').textContent(), /未配置/);
+  await page.getByRole('button', { name: 'Skill 管理', exact: true }).click();
+  await page.getByRole('button', { name: /任务记录/ }).click();
+  await page.getByRole('button', { name: '模型配置', exact: true }).click();
+  await page.locator('#openai-model').waitFor();
+  assert.equal(await page.locator('#openai-model').inputValue(), 'admin-test-image');
+  assert.deepEqual(errors, []);
+  if (process.env.LIVE_ADMIN_URL) {
+    await page.goto(process.env.LIVE_ADMIN_URL);
+    await page.getByRole('button', { name: '模型配置', exact: true }).click();
+    await page.locator('#openai-model').waitFor();
+    await page.locator('#skill-agent-model').waitFor();
+    assert.equal(await page.locator('.model-provider').count(), 4);
+    assert.equal(await page.locator('#openai-key').inputValue(), '');
+    assert.equal(await page.locator('.metrics').isVisible(), false);
+    await page.setViewportSize({ width: 1280, height: 960 });
+    await page.screenshot({ path: join(output, 'model-config-live.png'), fullPage: true });
+    console.log('Running local admin configuration is reachable. No live credentials or settings were changed.');
+  }
+  console.log('Admin browser verification passed: navigation, real save, persistence, secret clearing, validation errors, desktop/mobile. Screenshots: ' + output);
+} finally {
+  await browser.close();
+  for (const server of [admin, api]) {
+    server.closeAllConnections();
+    await new Promise((resolve) => server.close(resolve));
+  }
+}

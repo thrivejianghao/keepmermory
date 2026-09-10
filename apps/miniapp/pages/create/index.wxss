@@ -1,9 +1,16 @@
-.photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16rpx; margin: 36rpx 0 28rpx; }
-.photo, .add-photo { aspect-ratio: 1; border-radius: var(--r-md); overflow: hidden; }
+.create-page { padding-bottom: calc(80rpx + env(safe-area-inset-bottom)); }
+.photo-hint { display: block; margin-top: var(--space-2); color: var(--muted); font-size: var(--text-sm); line-height: 1.5; }
+.photo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); margin: 36rpx 0 28rpx; }
+.photo, .add-photo { position: relative; aspect-ratio: 1; border-radius: var(--r-md); overflow: hidden; }
 .photo image { width: 100%; height: 100%; }
-.add-photo { display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2rpx dashed #bcbcb5; color: var(--muted); }
-.add-photo text { color: var(--ink); font-size: 56rpx; }
-.parameter { display: flex; align-items: center; justify-content: space-between; padding: 24rpx; margin-bottom: 16rpx; }
-.parameter picker { color: var(--muted); }
-.error-message { color: var(--danger); padding: 20rpx 0; }
-.primary { margin-top: 24rpx; }
+.remove-photo { position: absolute; top: var(--space-1); right: var(--space-1); width: 54rpx; height: 54rpx; min-height: 0; padding: 0; line-height: 50rpx; border: 0; border-radius: 50%; background: rgba(23, 23, 23, .78); color: var(--surface); font-size: 34rpx; }
+.remove-photo::after { border: 0; }
+.add-photo { display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2rpx dashed #a9aba5; color: var(--muted); }
+.add-photo > text:first-child { color: var(--ink); font-size: 56rpx; }
+.add-label { font-size: var(--text-sm); }
+.parameter { min-height: 92rpx; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: 18rpx var(--space-3); margin-bottom: var(--space-2); }
+.parameter > text { flex: 0 0 auto; font-weight: 600; }
+.parameter picker { min-width: 0; color: var(--muted); }
+.picker-value { max-width: 390rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+.parameter-input { width: 280rpx; height: 58rpx; padding: 0 14rpx; border: 2rpx solid var(--line); border-radius: var(--r-sm); text-align: right; }
+.primary { margin-top: var(--space-3); }

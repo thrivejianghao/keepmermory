@@ -1,5 +1,6 @@
 :root { font-family: Inter, "Microsoft YaHei", sans-serif; color: #171717; background: #f4f4f1; font-synthesis: none; }
 * { box-sizing: border-box; }
+@media (max-width: 480px) { .app-shell aside { flex-wrap:wrap; gap:12px; } .app-shell nav { width:100%; margin-left:0; } .app-shell nav button { flex:1; padding:0 6px; justify-content:center; } }
 body { margin: 0; min-width: 320px; }
 button, input, select { font: inherit; }
 button { cursor: pointer; }

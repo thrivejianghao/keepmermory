@@ -3,7 +3,9 @@
 !.env.example
 .idea/
 .vscode/
+.local/
 coverage/
+output/
 dist/
 node_modules/
 *.tsbuildinfo

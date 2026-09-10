@@ -1,7 +1,8 @@
-.card { overflow: hidden; background: #fff; border: 2rpx solid #e5e5e1; border-radius: 12rpx; }
+.card { overflow: hidden; background: var(--surface); border: 2rpx solid var(--line); border-radius: var(--r-md); }
 image, .art { display: block; width: 100%; height: 330rpx; }
-.art { display: grid; place-items: center; color: #fff; font-size: 84rpx; font-weight: 900; }
-.art-0 { background: #345995; } .art-1 { background: #e56b6f; } .art-2 { background: #557c5b; } .art-3 { background: #8d5a97; }
+.featured image, .featured .art { height: 560rpx; }
+.art { display: grid; place-items: center; padding: var(--space-4); color: var(--surface); font-size: 64rpx; font-weight: 900; text-align: center; }
+.art-0 { background: var(--blue); } .art-1 { background: var(--coral); } .art-2 { background: var(--green); } .art-3 { background: var(--violet); }
 .copy { padding: 20rpx; display: flex; flex-direction: column; gap: 8rpx; }
 .name { font-size: 30rpx; font-weight: 700; }
-.description { color: #737373; font-size: 23rpx; line-height: 1.5; }
+.description { color: var(--muted); font-size: var(--text-sm); line-height: 1.5; }

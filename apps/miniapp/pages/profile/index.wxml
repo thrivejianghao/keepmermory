@@ -1,1 +1,8 @@
-<view class="page profile"><view class="identity"><view>造</view><text>本地创作空间</text><small>{{version}}</small></view><view class="menu surface"><view bindtap="openWorks"><text>我的作品</text><text>→</text></view><view><text>图片存储</text><text>本地</text></view><view><text>AI 模式</text><text>Mock</text></view></view><text class="privacy">照片仅在本地开发环境中处理</text></view>
+<view class="page profile">
+  <view class="identity"><view>造</view><text>{{userName}}</text><text class="version">{{version}}</text></view>
+  <view class="menu surface">
+    <view bindtap="openWorks"><text>我的作品</text><text>›</text></view>
+    <view bindtap="about"><text>关于造像</text><text>›</text></view>
+  </view>
+  <text class="privacy">照片仅用于完成你发起的创作任务</text>
+</view>
